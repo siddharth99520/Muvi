@@ -1,0 +1,36 @@
+name: muvi
+description: A borderless Windows music companion with live audio visualizer.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Window styling
+  flutter_acrylic: ^1.1.5
+  bitsdojo_window: ^0.1.6
+
+  # State management
+  provider: ^6.1.2
+
+  # Images & network
+  cached_network_image: ^3.3.1
+  http: ^1.2.1
+
+  # Typography
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/placeholder_album.png

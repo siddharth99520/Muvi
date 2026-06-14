@@ -1,0 +1,115 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/player_provider.dart';
+import '../theme/app_theme.dart';
+import 'visualizer_painter.dart';
+
+class VisualizerPanel extends StatefulWidget {
+  const VisualizerPanel({super.key});
+
+  @override
+  State<VisualizerPanel> createState() => _VisualizerPanelState();
+}
+
+class _VisualizerPanelState extends State<VisualizerPanel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<PlayerProvider, List<double>>(
+      selector: (_, p) => p.state.fftBands,
+      builder: (context, bands, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ──────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.accentCyan,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.accentCyan.withOpacity(0.6),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'LIVE SPECTRUM',
+                    style: TextStyle(
+                      fontFamily: 'SpaceGrotesk',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSecondary,
+                      letterSpacing: 3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Visualizer canvas ─────────────────────────────
+            Expanded(
+              child: AnimatedBuilder(
+                animation: _ticker,
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: VisualizerPainter(
+                      bands: bands,
+                      animationValue: _ticker.value,
+                    ),
+                    child: const SizedBox.expand(),
+                  );
+                },
+              ),
+            ),
+
+            // ── Frequency labels ──────────────────────────────
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: ['20Hz', '100Hz', '500Hz', '2kHz', '8kHz', '20kHz']
+                    .map((label) => Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 9,
+                            color: AppTheme.textMuted,
+                            letterSpacing: 0.3,
+                          ),
+                        ))
+                    .toList(),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}

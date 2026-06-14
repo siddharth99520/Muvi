@@ -1,0 +1,33 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.iml
+
+# Generated files
+lib/generated_plugin_registrant.dart
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
+windows/flutter/ephemeral/
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docview
+*.vs/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Credentials (never commit)
+*.env
+*.token
+secrets.dart
