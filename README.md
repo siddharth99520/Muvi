@@ -105,8 +105,8 @@ windows/
 ## 🗺️ Roadmap
 
 - [x] Phase 1: Scaffold, UI, mock animated visualizer, window styling
-- [ ] Phase 2: GSMTC C++ platform channel — real media metadata
-- [ ] Phase 2: WASAPI loopback + Kiss FFT → real audio visualizer
+- [x] Phase 2: GSMTC C++ platform channel — real media metadata
+- [x] Phase 2: WASAPI loopback + Kiss FFT → real audio visualizer
 - [ ] Phase 3: Settings panel (bar count, color themes, opacity)
 - [ ] Phase 3: Album art dominant color extraction
 
