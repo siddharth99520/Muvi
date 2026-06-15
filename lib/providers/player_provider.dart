@@ -6,6 +6,14 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import '../models/player_state.dart';
 
+/// [PlayerProvider] is the central state management class for the Muvi application.
+/// It acts as a bridge between the Flutter UI and the native Windows C++ backends.
+/// 
+/// Responsibilities:
+/// 1. Runs a simulated mock FFT visualizer while waiting for native data.
+/// 2. Listens to the 'muvi/media' MethodChannel for Windows GSMTC metadata updates.
+/// 3. Listens to the 'muvi/audio_visualizer' EventChannel for WASAPI FFT data.
+/// 4. Dispatches playback control commands (play/pause/seek) to the native layer.
 class PlayerProvider extends ChangeNotifier {
   PlayerState _state = PlayerState.mock;
   PlayerState get state => _state;
