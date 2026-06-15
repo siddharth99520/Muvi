@@ -10,8 +10,8 @@ class PlayerState {
   final Duration duration;
   final PlaybackStatus status;
   final Uint8List? albumArtBytes; // From GSMTC (Phase 2)
-  final List<double> fftBands;   // 16 normalized [0.0–1.0] values
-  final bool isLive;             // true once native channels are active
+  final List<double> fftBands; // 16 normalized [0.0–1.0] values
+  final bool isLive; // true once native channels are active
 
   const PlayerState({
     required this.title,

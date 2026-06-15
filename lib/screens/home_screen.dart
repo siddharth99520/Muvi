@@ -27,35 +27,35 @@ class HomeScreen extends StatelessWidget {
               // ── Title Bar ────────────────────────────────
               const TitleBar(),
 
-            // ── Main Content ─────────────────────────────────
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(28),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // ── Left Column: Player ─────────────────
-                    SizedBox(
-                      width: 280,
-                      child: ChangeNotifierProvider.value(
-                        value: context.read<PlayerProvider>(),
-                        child: const AlbumArtPanel(),
+              // ── Main Content ─────────────────────────────────
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ── Left Column: Player ─────────────────
+                      SizedBox(
+                        width: 280,
+                        child: ChangeNotifierProvider.value(
+                          value: context.read<PlayerProvider>(),
+                          child: const AlbumArtPanel(),
+                        ),
                       ),
-                    ),
 
-                    // ── Divider ─────────────────────────────
-                    const _VerticalDivider(),
+                      // ── Divider ─────────────────────────────
+                      const _VerticalDivider(),
 
-                    // ── Right Column: Visualizer ────────────
-                    const Expanded(
-                      child: VisualizerPanel(),
-                    ),
-                  ],
+                      // ── Right Column: Visualizer ────────────
+                      const Expanded(
+                        child: VisualizerPanel(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ],
       ),
     );
@@ -172,7 +172,7 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
                 child: Container(color: Colors.transparent),
               ),
             ),
-            
+
             // Dark overlay to keep text legible and contrast high
             Positioned.fill(
               child: Container(
@@ -211,4 +211,3 @@ class _GlowingOrb extends StatelessWidget {
     );
   }
 }
-

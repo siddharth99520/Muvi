@@ -119,7 +119,6 @@ class _AlbumArtState extends State<_AlbumArt>
   }
 }
 
-
 class _PlaceholderArt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -287,9 +286,7 @@ class _ControlButtonState extends State<_ControlButton> {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: _hovered
-                ? AppTheme.surfaceHigher
-                : AppTheme.surface,
+            color: _hovered ? AppTheme.surfaceHigher : AppTheme.surface,
           ),
           child: Icon(
             widget.icon,
@@ -369,9 +366,7 @@ class _PlayPauseButtonState extends State<_PlayPauseButton>
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             child: Icon(
-              widget.isPlaying
-                  ? Icons.pause_rounded
-                  : Icons.play_arrow_rounded,
+              widget.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
               key: ValueKey(widget.isPlaying),
               size: 30,
               color: Colors.white,

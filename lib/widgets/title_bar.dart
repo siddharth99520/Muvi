@@ -74,14 +74,14 @@ class _StatusBadgeState extends State<_StatusBadge>
   @override
   Widget build(BuildContext context) {
     final dotColor = widget.isLive ? AppTheme.accentGlow : AppTheme.accentCyan;
-    final label    = widget.isLive ? 'LIVE' : 'DETECTING MEDIA';
+    final label = widget.isLive ? 'LIVE' : 'DETECTING MEDIA';
 
     return AnimatedBuilder(
       animation: _pulse,
       builder: (_, __) {
         final opacity = widget.isLive
-            ? 0.5 + 0.5 * _pulse.value   // pulse when live
-            : 1.0;                         // steady when detecting
+            ? 0.5 + 0.5 * _pulse.value // pulse when live
+            : 1.0; // steady when detecting
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(

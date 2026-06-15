@@ -11,9 +11,9 @@ class PlayerProvider extends ChangeNotifier {
   PlayerState get state => _state;
 
   // Platform channels
-  static const _mediaChannel   = MethodChannel('muvi/media');
+  static const _mediaChannel = MethodChannel('muvi/media');
   static const _controlChannel = MethodChannel('muvi/controls');
-  static const _audioChannel   = EventChannel('muvi/audio_visualizer');
+  static const _audioChannel = EventChannel('muvi/audio_visualizer');
 
   Timer? _mockTimer;
   Timer? _progressTimer;
@@ -147,17 +147,18 @@ class PlayerProvider extends ChangeNotifier {
         final artBytes = data['albumArt'];
         final durationMs = data['durationMs'] as num?;
         final positionMs = data['positionMs'] as num?;
-        
+
         _state = _state.copyWith(
           title: data['title'] as String? ?? _state.title,
           artist: data['artist'] as String? ?? _state.artist,
           album: data['album'] as String? ?? _state.album,
-          albumArtBytes: artBytes is Uint8List ? artBytes : _state.albumArtBytes,
-          duration: durationMs != null && durationMs > 0 
-              ? Duration(milliseconds: durationMs.toInt()) 
+          albumArtBytes:
+              artBytes is Uint8List ? artBytes : _state.albumArtBytes,
+          duration: durationMs != null && durationMs > 0
+              ? Duration(milliseconds: durationMs.toInt())
               : _state.duration,
-          position: positionMs != null && positionMs > 0 
-              ? Duration(milliseconds: positionMs.toInt()) 
+          position: positionMs != null && positionMs > 0
+              ? Duration(milliseconds: positionMs.toInt())
               : _state.position,
           isLive: true,
         );
