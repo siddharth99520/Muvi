@@ -36,10 +36,28 @@ bool FlutterWindow::OnCreate() {
   // window is shown. It is a no-op if the first frame hasn't completed yet.
   flutter_controller_->ForceRedraw();
 
+  // ── Phase 2: native bridges ────────────────────────────────────────────────
+  auto* messenger = flutter_controller_->engine()->messenger();
+
+  gsmtc_bridge_   = std::make_unique<GsmtcBridge>(messenger);
+  wasapi_capture_ = std::make_unique<WasapiCapture>(messenger);
+
+  gsmtc_bridge_->Start();
+  wasapi_capture_->Start();
+
+  // Drain timer: fires every 50 ms on the platform thread to push queued
+  // native data (media info + FFT bands) into the Flutter channels safely.
+  ::SetTimer(GetHandle(), kDrainTimerId, kDrainIntervalMs, nullptr);
+
   return true;
 }
 
 void FlutterWindow::OnDestroy() {
+  ::KillTimer(GetHandle(), kDrainTimerId);
+
+  if (gsmtc_bridge_)   { gsmtc_bridge_->Stop();   gsmtc_bridge_.reset(); }
+  if (wasapi_capture_) { wasapi_capture_->Stop(); wasapi_capture_.reset(); }
+
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
@@ -65,7 +83,15 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
+
+    case WM_TIMER:
+      if (wparam == kDrainTimerId) {
+        if (gsmtc_bridge_)   gsmtc_bridge_->DrainPending();
+        if (wasapi_capture_) wasapi_capture_->DrainPending();
+      }
+      break;
   }
 
   return Win32Window::MessageHandler(hwnd, message, wparam, lparam);
 }
+

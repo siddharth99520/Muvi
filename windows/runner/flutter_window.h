@@ -7,6 +7,12 @@
 #include <memory>
 
 #include "win32_window.h"
+#include "gsmtc_bridge.h"
+#include "wasapi_capture.h"
+
+// Timer ID used to drain pending native data onto the platform thread (~20 Hz)
+static constexpr UINT_PTR kDrainTimerId = 0xDEAD;
+static constexpr UINT     kDrainIntervalMs = 50;  // 20 Hz
 
 // A window that does nothing but host a Flutter view.
 class FlutterWindow : public Win32Window {
@@ -28,6 +34,10 @@ class FlutterWindow : public Win32Window {
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
+
+  // Phase 2 — native bridges
+  std::unique_ptr<GsmtcBridge>   gsmtc_bridge_;
+  std::unique_ptr<WasapiCapture> wasapi_capture_;
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_

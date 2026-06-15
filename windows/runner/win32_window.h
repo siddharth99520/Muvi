@@ -39,7 +39,7 @@ class Win32Window {
   // Show the current window. Returns true if the window was successfully shown.
   bool Show();
 
-  // Releases OS resources associated with window.
+  // Release OS resources associated with window.
   void Destroy();
 
   // Inserts |content| into the window tree.
@@ -56,10 +56,11 @@ class Win32Window {
   RECT GetClientArea();
 
  protected:
-  // Processes and routes salient window messages for mouse handling,
+  // Processes and route salient window messages for mouse handling,
   // size change and DPI. Delegates handling of these to member overloads that
   // inheriting classes can handle.
-  virtual LRESULT MessageHandler(HWND window, UINT const message,
+  virtual LRESULT MessageHandler(HWND window,
+                                 UINT const message,
                                  WPARAM const wparam,
                                  LPARAM const lparam) noexcept;
 
@@ -78,12 +79,16 @@ class Win32Window {
   // non-client DPI scaling so that the non-client area automatically
   // responds to changes in DPI. All other messages are handled by
   // MessageHandler.
-  static LRESULT CALLBACK WndProc(HWND const window, UINT const message,
+  static LRESULT CALLBACK WndProc(HWND const window,
+                                  UINT const message,
                                   WPARAM const wparam,
                                   LPARAM const lparam) noexcept;
 
   // Retrieves a class instance pointer for |window|
   static Win32Window* GetThisFromHandle(HWND const window) noexcept;
+
+  // Update the window frame's theme to match the system theme.
+  static void UpdateTheme(HWND const window);
 
   bool quit_on_close_ = false;
 

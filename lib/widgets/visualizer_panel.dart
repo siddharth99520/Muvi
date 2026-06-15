@@ -14,6 +14,8 @@ class VisualizerPanel extends StatefulWidget {
 class _VisualizerPanelState extends State<VisualizerPanel>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ticker;
+  final List<double> _currentBands = List.filled(16, 0.0);
+  List<double> _targetBands = List.filled(16, 0.0);
 
   @override
   void initState() {
@@ -35,6 +37,11 @@ class _VisualizerPanelState extends State<VisualizerPanel>
     return Selector<PlayerProvider, List<double>>(
       selector: (_, p) => p.state.fftBands,
       builder: (context, bands, _) {
+        // Update targets whenever native layer pushes new data (~20 Hz)
+        if (bands.length == 16) {
+          _targetBands = bands;
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -78,9 +85,16 @@ class _VisualizerPanelState extends State<VisualizerPanel>
               child: AnimatedBuilder(
                 animation: _ticker,
                 builder: (context, _) {
+                  // Buttery smooth 60fps interpolation
+                  for (int i = 0; i < 16; i++) {
+                    final diff = _targetBands[i] - _currentBands[i];
+                    // Fast attack (bars jump up quickly), slow decay (fall down smoothly)
+                    _currentBands[i] += diff * (diff > 0 ? 0.35 : 0.15);
+                  }
+
                   return CustomPaint(
                     painter: VisualizerPainter(
-                      bands: bands,
+                      bands: List.from(_currentBands),
                       animationValue: _ticker.value,
                     ),
                     child: const SizedBox.expand(),

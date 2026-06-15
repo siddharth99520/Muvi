@@ -6,23 +6,26 @@ import 'app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize acrylic window effects
+  // flutter_acrylic MUST initialize before runApp
   await Window.initialize();
-  await Window.setEffect(
-    effect: WindowEffect.acrylic,
-    color: const Color(0xCC0D0D12), // ~80% opaque deep navy
-  );
 
   runApp(const MuviApp());
 
-  // Configure the window via bitsdojo_window
-  doWhenWindowReady(() {
+  // Window sizing + acrylic effect AFTER runApp so the engine is ready
+  doWhenWindowReady(() async {
     const minSize = Size(960, 600);
     appWindow
       ..minSize = minSize
       ..size = minSize
       ..alignment = Alignment.center
-      ..title = 'Muvi'
-      ..show();
+      ..title = 'Muvi';
+
+    // Apply acrylic after the window handle exists
+    await Window.setEffect(
+      effect: WindowEffect.acrylic,
+      color: const Color(0xCC0D0D12),
+    );
+
+    appWindow.show();
   });
 }

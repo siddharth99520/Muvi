@@ -18,7 +18,7 @@ class AlbumArtPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── Album Art ──────────────────────────────────────────
-        _AlbumArt(albumArtBytes: state.albumArtBytes),
+        _AlbumArt(albumArtBytes: state.albumArtBytes, isLive: state.isLive),
         const SizedBox(height: 28),
 
         // ── Song Info ─────────────────────────────────────────
@@ -37,55 +37,88 @@ class AlbumArtPanel extends StatelessWidget {
 }
 
 // ── Album Art Widget ────────────────────────────────────────────
-class _AlbumArt extends StatelessWidget {
+class _AlbumArt extends StatefulWidget {
   final Uint8List? albumArtBytes;
+  final bool isLive;
 
-  const _AlbumArt({this.albumArtBytes});
+  const _AlbumArt({this.albumArtBytes, required this.isLive});
+
+  @override
+  State<_AlbumArt> createState() => _AlbumArtState();
+}
+
+class _AlbumArtState extends State<_AlbumArt>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 220,
-        height: 220,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.accent.withOpacity(0.35),
-              blurRadius: 40,
-              spreadRadius: 4,
-              offset: const Offset(0, 12),
-            ),
-            BoxShadow(
-              color: AppTheme.accentCyan.withOpacity(0.15),
-              blurRadius: 60,
-              spreadRadius: 8,
-              offset: const Offset(0, 20),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: albumArtBytes != null
-              ? Image.memory(
-                  albumArtBytes!,
-                  fit: BoxFit.cover,
-                  width: 220,
-                  height: 220,
-                )
-              : Image.asset(
-                  'assets/images/placeholder_album.png',
-                  fit: BoxFit.cover,
-                  width: 220,
-                  height: 220,
-                  errorBuilder: (_, __, ___) => _PlaceholderArt(),
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, _) {
+        final glowOpacity = widget.isLive ? 0.35 + 0.15 * _pulse.value : 0.35;
+        final cyanOpacity = widget.isLive ? 0.15 + 0.10 * _pulse.value : 0.15;
+
+        return Center(
+          child: Container(
+            width: 220,
+            height: 220,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.accent.withOpacity(glowOpacity),
+                  blurRadius: 40,
+                  spreadRadius: 4,
+                  offset: const Offset(0, 12),
                 ),
-        ),
-      ),
+                BoxShadow(
+                  color: AppTheme.accentCyan.withOpacity(cyanOpacity),
+                  blurRadius: 60,
+                  spreadRadius: 8,
+                  offset: const Offset(0, 20),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: widget.albumArtBytes != null
+                  ? Image.memory(
+                      widget.albumArtBytes!,
+                      fit: BoxFit.cover,
+                      width: 220,
+                      height: 220,
+                    )
+                  : Image.asset(
+                      'assets/images/placeholder_album.png',
+                      fit: BoxFit.cover,
+                      width: 220,
+                      height: 220,
+                      errorBuilder: (_, __, ___) => _PlaceholderArt(),
+                    ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
+
 
 class _PlaceholderArt extends StatelessWidget {
   @override
@@ -168,7 +201,7 @@ class _ProgressBar extends StatelessWidget {
         SliderTheme(
           data: SliderThemeData(
             trackHeight: 3,
-            thumbRadius: 6,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
             thumbColor: AppTheme.accentGlow,
             activeTrackColor: AppTheme.accent,
             inactiveTrackColor: AppTheme.divider,

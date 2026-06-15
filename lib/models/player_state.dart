@@ -10,7 +10,8 @@ class PlayerState {
   final Duration duration;
   final PlaybackStatus status;
   final Uint8List? albumArtBytes; // From GSMTC (Phase 2)
-  final List<double> fftBands; // 32 normalized [0.0–1.0] values
+  final List<double> fftBands;   // 16 normalized [0.0–1.0] values
+  final bool isLive;             // true once native channels are active
 
   const PlayerState({
     required this.title,
@@ -21,6 +22,7 @@ class PlayerState {
     required this.status,
     this.albumArtBytes,
     required this.fftBands,
+    this.isLive = false,
   });
 
   static PlayerState get mock => PlayerState(
@@ -31,7 +33,8 @@ class PlayerState {
         duration: const Duration(minutes: 3, seconds: 54),
         status: PlaybackStatus.playing,
         albumArtBytes: null,
-        fftBands: List.filled(32, 0.0),
+        fftBands: List.filled(16, 0.0),
+        isLive: false,
       );
 
   PlayerState copyWith({
@@ -43,6 +46,7 @@ class PlayerState {
     PlaybackStatus? status,
     Uint8List? albumArtBytes,
     List<double>? fftBands,
+    bool? isLive,
   }) {
     return PlayerState(
       title: title ?? this.title,
@@ -53,6 +57,7 @@ class PlayerState {
       status: status ?? this.status,
       albumArtBytes: albumArtBytes ?? this.albumArtBytes,
       fftBands: fftBands ?? this.fftBands,
+      isLive: isLive ?? this.isLive,
     );
   }
 }
