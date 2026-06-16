@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
@@ -31,12 +32,27 @@ class TitleBar extends StatelessWidget {
 
               const Spacer(),
 
+              // ── Fullscreen Toggle ────────────────────────────
+              IconButton(
+                icon: const Icon(Icons.fullscreen_rounded, size: 18),
+                color: AppTheme.textSecondary,
+                hoverColor: Colors.white,
+                splashRadius: 20,
+                tooltip: 'Immersive Fullscreen (F11)',
+                onPressed: () async {
+                  bool isFull = await windowManager.isFullScreen();
+                  await windowManager.setFullScreen(!isFull);
+                },
+              ),
+              const SizedBox(width: 4),
+
               // ── Settings ─────────────────────────────────────
               IconButton(
                 icon: const Icon(Icons.tune_rounded, size: 18),
                 color: AppTheme.textSecondary,
                 hoverColor: Colors.white,
                 splashRadius: 20,
+                tooltip: 'Settings',
                 onPressed: () {
                   showDialog(
                     context: context,

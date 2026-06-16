@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:window_manager/window_manager.dart';
 import 'app.dart';
 
 void main() async {
@@ -8,6 +9,9 @@ void main() async {
 
   // flutter_acrylic MUST initialize before runApp
   await Window.initialize();
+  
+  // window_manager for F11 fullscreen
+  await windowManager.ensureInitialized();
 
   runApp(const MuviApp());
 
