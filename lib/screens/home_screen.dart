@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
@@ -104,8 +105,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 25),
-    )..repeat(reverse: true);
+      duration: const Duration(seconds: 12),
+    )..repeat(); // Removed reverse to allow continuous circular rotation
   }
 
   @override
@@ -119,7 +120,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
-        final t = _controller.value;
+        final t = _controller.value * 2 * math.pi; // 0 to 2π
+        
         return Stack(
           children: [
             // Base background
@@ -127,8 +129,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
 
             // Center-left Magenta/Pink
             Positioned(
-              top: -100 + (t * 200),
-              left: -200 - (t * 100),
+              top: -100 + (math.sin(t) * 150),
+              left: -200 + (math.cos(t) * 150),
               child: _GlowingOrb(
                 color: const Color(0xFFFA2C56).withOpacity(0.6),
                 size: 800,
@@ -137,8 +139,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
 
             // Top-right Orange/Peach
             Positioned(
-              top: -300 - (t * 150),
-              right: -100 + (t * 200),
+              top: -300 + (math.cos(t + 1) * 200),
+              right: -100 + (math.sin(t + 1) * 200),
               child: _GlowingOrb(
                 color: const Color(0xFFF98C40).withOpacity(0.55),
                 size: 900,
@@ -147,8 +149,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
 
             // Bottom-right Deep Purple
             Positioned(
-              bottom: -200 - (t * 250),
-              right: -150 - (t * 100),
+              bottom: -200 + (math.sin(t + 2) * 250),
+              right: -150 + (math.cos(t + 2) * 250),
               child: _GlowingOrb(
                 color: const Color(0xFF66118C).withOpacity(0.6),
                 size: 850,
@@ -157,8 +159,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
 
             // Center-bottom Soft Red
             Positioned(
-              bottom: -100 + (t * 300),
-              left: 100 + (t * 150),
+              bottom: -100 + (math.cos(t + 3) * 200),
+              left: 100 + (math.sin(t + 3) * 200),
               child: _GlowingOrb(
                 color: const Color(0xFFE01A4F).withOpacity(0.4),
                 size: 700,
