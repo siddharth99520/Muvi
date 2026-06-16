@@ -2,8 +2,10 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:palette_generator/palette_generator.dart';
 import '../models/player_state.dart';
 
 /// [PlayerProvider] is the central state management class for the Muvi application.
@@ -46,24 +48,19 @@ class PlayerProvider extends ChangeNotifier {
   // Mock animated visualizer (active until native data arrives)
   // ──────────────────────────────────────────────────────────────
   void _startMockVisualizer() {
-    _mockTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
-      if (!hasListeners) return;
-      _mockTime += 0.05;
+    _mockTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
       _updateMockBands();
-      _state = _state.copyWith(fftBands: List<double>.from(_current));
-      notifyListeners();
+      if (!_state.isLive) {
+        _state = _state.copyWith(fftBands: List.from(_current));
+        notifyListeners();
+      }
     });
   }
 
   void _updateMockBands() {
+    _mockTime += 0.05;
     for (int i = 0; i < 16; i++) {
-      final freqWeight = i < 3
-          ? 0.85
-          : i < 7
-              ? 0.65
-              : i < 12
-                  ? 0.45
-                  : 0.25;
+      final freqWeight = 1.0 - (i / 16) * 0.5;
 
       final wave1 = sin(_mockTime * 1.3 + i * 0.4) * 0.4;
       final wave2 = sin(_mockTime * 2.7 + i * 0.9) * 0.25;
@@ -97,34 +94,26 @@ class PlayerProvider extends ChangeNotifier {
   // ──────────────────────────────────────────────────────────────
   // Playback controls — forwarded to native; also update local state
   // ──────────────────────────────────────────────────────────────
-  void playPause() {
-    final newStatus = _state.status == PlaybackStatus.playing
-        ? PlaybackStatus.paused
-        : PlaybackStatus.playing;
-    _state = _state.copyWith(status: newStatus);
-
-    if (newStatus == PlaybackStatus.playing) {
-      _startProgressTimer();
-    } else {
-      _progressTimer?.cancel();
-    }
+  void play() {
+    _controlChannel.invokeMethod('play').catchError((_) {});
+    _state = _state.copyWith(status: PlaybackStatus.playing);
+    _startProgressTimer();
     notifyListeners();
+  }
 
-    _controlChannel
-        .invokeMethod(newStatus == PlaybackStatus.playing ? 'play' : 'pause')
-        .catchError((_) {});
+  void pause() {
+    _controlChannel.invokeMethod('pause').catchError((_) {});
+    _state = _state.copyWith(status: PlaybackStatus.paused);
+    _progressTimer?.cancel();
+    notifyListeners();
   }
 
   void next() {
     _controlChannel.invokeMethod('next').catchError((_) {});
-    _state = _state.copyWith(position: Duration.zero);
-    notifyListeners();
   }
 
   void previous() {
     _controlChannel.invokeMethod('previous').catchError((_) {});
-    _state = _state.copyWith(position: Duration.zero);
-    notifyListeners();
   }
 
   void seek(double fraction) {
@@ -156,12 +145,30 @@ class PlayerProvider extends ChangeNotifier {
         final durationMs = data['durationMs'] as num?;
         final positionMs = data['positionMs'] as num?;
 
+        // Extract palette if artBytes changed
+        Color? dominant;
+        Color? vibrant;
+        if (artBytes is Uint8List) {
+          try {
+            final palette = await PaletteGenerator.fromImageProvider(
+              MemoryImage(artBytes),
+              maximumColorCount: 10,
+            );
+            dominant = palette.dominantColor?.color;
+            vibrant = palette.vibrantColor?.color ?? palette.lightVibrantColor?.color;
+          } catch (e) {
+            // ignore palette extraction errors
+          }
+        }
+
         _state = _state.copyWith(
           title: data['title'] as String? ?? _state.title,
           artist: data['artist'] as String? ?? _state.artist,
           album: data['album'] as String? ?? _state.album,
           albumArtBytes:
               artBytes is Uint8List ? artBytes : _state.albumArtBytes,
+          dominantColor: dominant ?? _state.dominantColor,
+          vibrantColor: vibrant ?? _state.vibrantColor,
           duration: durationMs != null && durationMs > 0
               ? Duration(milliseconds: durationMs.toInt())
               : _state.duration,

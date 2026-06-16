@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
+import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/album_art_panel.dart';
 import '../widgets/visualizer_panel.dart';
@@ -117,6 +118,27 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+    final playerState = context.watch<PlayerProvider>().state;
+
+    // Determine colors
+    final useDynamic = settings.useDynamicColors;
+    final baseColor = useDynamic && playerState.dominantColor != null 
+        ? playerState.dominantColor! 
+        : const Color(0xFF1E0A1E);
+    final color1 = useDynamic && playerState.vibrantColor != null 
+        ? playerState.vibrantColor!.withOpacity(0.6) 
+        : const Color(0xFFFA2C56).withOpacity(0.6);
+    final color2 = useDynamic && playerState.dominantColor != null 
+        ? playerState.dominantColor!.withOpacity(0.55) 
+        : const Color(0xFFF98C40).withOpacity(0.55);
+    final color3 = useDynamic && playerState.dominantColor != null 
+        ? playerState.dominantColor!.withOpacity(0.6) 
+        : const Color(0xFF66118C).withOpacity(0.6);
+    final color4 = useDynamic && playerState.vibrantColor != null 
+        ? playerState.vibrantColor!.withOpacity(0.4) 
+        : const Color(0xFFE01A4F).withOpacity(0.4);
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -125,14 +147,14 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
         return Stack(
           children: [
             // Base background
-            Container(color: const Color(0xFF1E0A1E)), // Deep plum base
+            Container(color: baseColor),
 
             // Center-left Magenta/Pink
             Positioned(
               top: -100 + (math.sin(t) * 150),
               left: -200 + (math.cos(t) * 150),
               child: _GlowingOrb(
-                color: const Color(0xFFFA2C56).withOpacity(0.6),
+                color: color1,
                 size: 800,
               ),
             ),
@@ -142,7 +164,7 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
               top: -300 + (math.cos(t + 1) * 200),
               right: -100 + (math.sin(t + 1) * 200),
               child: _GlowingOrb(
-                color: const Color(0xFFF98C40).withOpacity(0.55),
+                color: color2,
                 size: 900,
               ),
             ),
@@ -152,7 +174,7 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
               bottom: -200 + (math.sin(t + 2) * 250),
               right: -150 + (math.cos(t + 2) * 250),
               child: _GlowingOrb(
-                color: const Color(0xFF66118C).withOpacity(0.6),
+                color: color3,
                 size: 850,
               ),
             ),
@@ -162,7 +184,7 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
               bottom: -100 + (math.cos(t + 3) * 200),
               left: 100 + (math.sin(t + 3) * 200),
               child: _GlowingOrb(
-                color: const Color(0xFFE01A4F).withOpacity(0.4),
+                color: color4,
                 size: 700,
               ),
             ),
@@ -178,7 +200,7 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
             // Dark overlay to keep text legible and contrast high
             Positioned.fill(
               child: Container(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withOpacity(settings.bgOpacity),
               ),
             ),
           ],

@@ -247,7 +247,10 @@ class _PlaybackControls extends StatelessWidget {
           onTap: provider.previous,
         ),
         const SizedBox(width: 16),
-        _PlayPauseButton(isPlaying: isPlaying, onTap: provider.playPause),
+        _PlayPauseButton(
+          isPlaying: isPlaying, 
+          onTap: isPlaying ? provider.pause : provider.play,
+        ),
         const SizedBox(width: 16),
         _ControlButton(
           icon: Icons.skip_next_rounded,

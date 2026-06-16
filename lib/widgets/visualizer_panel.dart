@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
+import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import 'visualizer_painter.dart';
 
@@ -14,8 +15,8 @@ class VisualizerPanel extends StatefulWidget {
 class _VisualizerPanelState extends State<VisualizerPanel>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ticker;
-  final List<double> _currentBands = List.filled(16, 0.0);
-  List<double> _targetBands = List.filled(16, 0.0);
+  final List<double> _currentBands = List.filled(32, 0.0);
+  List<double> _targetBands = List.filled(32, 0.0);
 
   @override
   void initState() {
@@ -34,12 +35,16 @@ class _VisualizerPanelState extends State<VisualizerPanel>
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+
     return Selector<PlayerProvider, List<double>>(
       selector: (_, p) => p.state.fftBands,
       builder: (context, bands, _) {
         // Update targets whenever native layer pushes new data (~20 Hz)
-        if (bands.length == 16) {
-          _targetBands = bands;
+        if (bands.isNotEmpty && bands.length <= 32) {
+          for (int i = 0; i < bands.length; i++) {
+            _targetBands[i] = bands[i];
+          }
         }
 
         return Column(
@@ -86,7 +91,7 @@ class _VisualizerPanelState extends State<VisualizerPanel>
                 animation: _ticker,
                 builder: (context, _) {
                   // Buttery smooth 60fps interpolation
-                  for (int i = 0; i < 16; i++) {
+                  for (int i = 0; i < 32; i++) {
                     final diff = _targetBands[i] - _currentBands[i];
                     // Fast attack (bars jump up quickly), slow decay (fall down smoothly)
                     _currentBands[i] += diff * (diff > 0 ? 0.35 : 0.15);
@@ -96,6 +101,7 @@ class _VisualizerPanelState extends State<VisualizerPanel>
                     painter: VisualizerPainter(
                       bands: List.from(_currentBands),
                       animationValue: _ticker.value,
+                      barCount: settings.barCount,
                     ),
                     child: const SizedBox.expand(),
                   );

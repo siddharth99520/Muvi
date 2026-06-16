@@ -5,26 +5,44 @@ import '../theme/app_theme.dart';
 class VisualizerPainter extends CustomPainter {
   final List<double> bands;
   final double animationValue;
+  final int barCount;
 
-  static const int _barCount = 16;
   static const double _barGap = 8.0;
 
   VisualizerPainter({
     required this.bands,
     required this.animationValue,
+    required this.barCount,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (bands.isEmpty) return;
 
-    final count = min(bands.length, _barCount);
+    // Downsample bands array (from max 32) to the requested barCount
+    final List<double> displayBands = [];
+    if (bands.length <= barCount) {
+      displayBands.addAll(bands.take(barCount));
+    } else {
+      final chunkSize = bands.length ~/ barCount;
+      for (int i = 0; i < barCount; i++) {
+        double sum = 0;
+        for (int j = 0; j < chunkSize; j++) {
+          sum += bands[i * chunkSize + j];
+        }
+        displayBands.add(sum / chunkSize);
+      }
+    }
+
+    final count = displayBands.length;
+    if (count == 0) return;
+
     final totalGap = _barGap * (count - 1);
     final barWidth = (size.width - totalGap) / count;
     final barRadius = Radius.circular(barWidth / 2);
 
     for (int i = 0; i < count; i++) {
-      final amp = bands[i].clamp(0.0, 1.0);
+      final amp = displayBands[i].clamp(0.0, 1.0);
       final barHeight = max(barWidth, amp * size.height * 0.92);
       final x = i * (barWidth + _barGap);
       // Vertically center the bar

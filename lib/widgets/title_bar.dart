@@ -3,6 +3,7 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
+import 'settings_dialog.dart';
 
 class TitleBar extends StatelessWidget {
   const TitleBar({super.key});
@@ -29,6 +30,21 @@ class TitleBar extends StatelessWidget {
               Text('MUVI', style: AppTheme.appName),
 
               const Spacer(),
+
+              // ── Settings ─────────────────────────────────────
+              IconButton(
+                icon: const Icon(Icons.tune_rounded, size: 18),
+                color: AppTheme.textSecondary,
+                hoverColor: Colors.white,
+                splashRadius: 20,
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => const SettingsDialog(),
+                  );
+                },
+              ),
+              const SizedBox(width: 10),
 
               // ── Live / Detecting badge ───────────────────────
               Selector<PlayerProvider, bool>(

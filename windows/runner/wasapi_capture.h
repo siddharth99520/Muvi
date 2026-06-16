@@ -25,7 +25,7 @@
 #include <complex>
 
 static constexpr int kFFTSize   = 1024;  // FFT window (power of 2)
-static constexpr int kBandCount = 16;    // output bands
+static constexpr int kBandCount = 32;    // output bands
 
 // StreamHandler that stores the EventSink given to it by Flutter.
 class AudioStreamHandler

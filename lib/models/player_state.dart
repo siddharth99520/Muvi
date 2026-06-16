@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
 
 enum PlaybackStatus { playing, paused, stopped }
 
@@ -10,6 +11,8 @@ class PlayerState {
   final Duration duration;
   final PlaybackStatus status;
   final Uint8List? albumArtBytes; // From GSMTC (Phase 2)
+  final Color? dominantColor; // Extracted via PaletteGenerator
+  final Color? vibrantColor; // Extracted via PaletteGenerator
   final List<double> fftBands; // 16 normalized [0.0–1.0] values
   final bool isLive; // true once native channels are active
 
@@ -21,6 +24,8 @@ class PlayerState {
     required this.duration,
     required this.status,
     this.albumArtBytes,
+    this.dominantColor,
+    this.vibrantColor,
     required this.fftBands,
     this.isLive = false,
   });
@@ -33,6 +38,8 @@ class PlayerState {
         duration: const Duration(minutes: 3, seconds: 54),
         status: PlaybackStatus.playing,
         albumArtBytes: null,
+        dominantColor: null,
+        vibrantColor: null,
         fftBands: List.filled(16, 0.0),
         isLive: false,
       );
@@ -45,6 +52,8 @@ class PlayerState {
     Duration? duration,
     PlaybackStatus? status,
     Uint8List? albumArtBytes,
+    Color? dominantColor,
+    Color? vibrantColor,
     List<double>? fftBands,
     bool? isLive,
   }) {
@@ -56,6 +65,8 @@ class PlayerState {
       duration: duration ?? this.duration,
       status: status ?? this.status,
       albumArtBytes: albumArtBytes ?? this.albumArtBytes,
+      dominantColor: dominantColor ?? this.dominantColor,
+      vibrantColor: vibrantColor ?? this.vibrantColor,
       fftBands: fftBands ?? this.fftBands,
       isLive: isLive ?? this.isLive,
     );
