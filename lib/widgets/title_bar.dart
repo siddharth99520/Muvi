@@ -159,6 +159,13 @@ class _WindowButtons extends StatelessWidget {
           icon: Icons.remove_rounded,
           onTap: () => appWindow.minimize(),
         ),
+        const SizedBox(width: 8),
+        _WinBtn(
+          color: const Color(0xFF28C840),
+          hoverColor: const Color(0xFF00A216),
+          icon: Icons.open_in_full_rounded,
+          onTap: () => appWindow.maximizeOrRestore(),
+        ),
       ],
     );
   }
