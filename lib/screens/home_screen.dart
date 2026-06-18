@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/album_art_panel.dart';
 import '../widgets/visualizer_panel.dart';
 import '../widgets/title_bar.dart';
+import 'package:flutter/scheduler.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -99,20 +100,41 @@ class _SmoothBackground extends StatefulWidget {
 
 class _SmoothBackgroundState extends State<_SmoothBackground>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+  late final Ticker _ticker;
+  final ValueNotifier<double> _timeNotifier = ValueNotifier(0.0);
+  final ValueNotifier<double> _bassIntensityNotifier = ValueNotifier(0.0);
+  Duration _lastElapsed = Duration.zero;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat(); // Removed reverse to allow continuous circular rotation
+    _ticker = createTicker((elapsed) {
+      final dt = (elapsed - _lastElapsed).inMicroseconds / 1000000.0;
+      _lastElapsed = elapsed;
+
+      if (!mounted) return;
+      
+      final state = context.read<PlayerProvider>().state;
+      double bass = 0.0;
+      if (state.fftBands.length >= 3) {
+        // Average the first 3 bands (bass frequencies)
+        bass = (state.fftBands[0] + state.fftBands[1] + state.fftBands[2]) / 3.0;
+      }
+      
+      // Smooth the bass intensity so brightness doesn't flicker violently
+      _bassIntensityNotifier.value += (bass - _bassIntensityNotifier.value) * (dt * 15.0).clamp(0.0, 1.0);
+
+      // Base speed: 0.1 rad/s, Bass boost: up to 1.5 rad/s
+      _timeNotifier.value += dt * (0.1 + _bassIntensityNotifier.value * 1.5);
+    });
+    _ticker.start();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ticker.dispose();
+    _timeNotifier.dispose();
+    _bassIntensityNotifier.dispose();
     super.dispose();
   }
 
@@ -140,9 +162,19 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
         : const Color(0xFFE01A4F).withOpacity(0.4);
 
     return AnimatedBuilder(
-      animation: _controller,
+      animation: Listenable.merge([_timeNotifier, _bassIntensityNotifier]),
       builder: (context, _) {
-        final t = _controller.value * 2 * math.pi; // 0 to 2π
+        final t = _timeNotifier.value;
+        final bass = _bassIntensityNotifier.value;
+        
+        // Boost size and brightness based on bass
+        final sizeBoost = bass * 150.0;
+        final opacityBoost = bass * 0.4;
+        
+        // Helper to apply opacity boost to colors
+        Color boostColor(Color c) {
+          return c.withOpacity((c.opacity + opacityBoost).clamp(0.0, 1.0));
+        }
         
         return Stack(
           children: [
@@ -154,8 +186,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
               top: -100 + (math.sin(t) * 150),
               left: -200 + (math.cos(t) * 150),
               child: _GlowingOrb(
-                color: color1,
-                size: 800,
+                color: boostColor(color1),
+                size: 800 + sizeBoost,
               ),
             ),
 
@@ -164,8 +196,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
               top: -300 + (math.cos(t + 1) * 200),
               right: -100 + (math.sin(t + 1) * 200),
               child: _GlowingOrb(
-                color: color2,
-                size: 900,
+                color: boostColor(color2),
+                size: 900 + sizeBoost,
               ),
             ),
 
@@ -174,8 +206,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
               bottom: -200 + (math.sin(t + 2) * 250),
               right: -150 + (math.cos(t + 2) * 250),
               child: _GlowingOrb(
-                color: color3,
-                size: 850,
+                color: boostColor(color3),
+                size: 850 + sizeBoost,
               ),
             ),
 
@@ -184,8 +216,8 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
               bottom: -100 + (math.cos(t + 3) * 200),
               left: 100 + (math.sin(t + 3) * 200),
               child: _GlowingOrb(
-                color: color4,
-                size: 700,
+                color: boostColor(color4),
+                size: 700 + sizeBoost,
               ),
             ),
 
@@ -198,9 +230,10 @@ class _SmoothBackgroundState extends State<_SmoothBackground>
             ),
 
             // Dark overlay to keep text legible and contrast high
+            // Slightly reduce the overlay opacity when bass is strong for extra brightness
             Positioned.fill(
               child: Container(
-                color: Colors.black.withOpacity(settings.bgOpacity),
+                color: Colors.black.withOpacity((settings.bgOpacity - bass * 0.2).clamp(0.0, 1.0)),
               ),
             ),
           ],
