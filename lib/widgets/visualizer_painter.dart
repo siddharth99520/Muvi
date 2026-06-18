@@ -19,30 +19,55 @@ class VisualizerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (bands.isEmpty) return;
 
-    // Downsample bands array (from max 32) to the requested barCount
-    final List<double> displayBands = [];
-    if (bands.length <= barCount) {
-      displayBands.addAll(bands.take(barCount));
+    // Downsample bands array (from max 32) to half of the requested barCount
+    int halfCount = (barCount + 1) ~/ 2;
+    final List<double> halfBands = [];
+    if (bands.length <= halfCount) {
+      halfBands.addAll(bands.take(halfCount));
     } else {
-      final chunkSize = bands.length ~/ barCount;
-      for (int i = 0; i < barCount; i++) {
+      final chunkSize = bands.length ~/ halfCount;
+      for (int i = 0; i < halfCount; i++) {
         double sum = 0;
         for (int j = 0; j < chunkSize; j++) {
           sum += bands[i * chunkSize + j];
         }
-        displayBands.add(sum / chunkSize);
+        halfBands.add(sum / chunkSize);
       }
     }
 
-    final count = displayBands.length;
-    if (count == 0) return;
+    if (halfBands.isEmpty) return;
 
+    // Generate mirrored array with high-frequency emphasis
+    final List<double> mirroredBands = List.filled(barCount, 0.0);
+    int center = barCount ~/ 2;
+    bool isOdd = barCount % 2 != 0;
+
+    for (int i = 0; i < halfCount; i++) {
+      // 1. A gentle quadratic boost that scales up to ~5.5x at the edges
+      //    This prevents ambient noise from maxing out the outer bars.
+      double boost = 1.0 + ((i * i) * 0.02); 
+      double val = (halfBands[i] * boost).clamp(0.0, 1.0);
+
+      if (isOdd) {
+        if (i == 0) {
+          mirroredBands[center] = val;
+        } else {
+          if (center - i >= 0) mirroredBands[center - i] = val;
+          if (center + i < barCount) mirroredBands[center + i] = val;
+        }
+      } else {
+        if (center - 1 - i >= 0) mirroredBands[center - 1 - i] = val;
+        if (center + i < barCount) mirroredBands[center + i] = val;
+      }
+    }
+
+    final count = mirroredBands.length;
     final totalGap = _barGap * (count - 1);
     final barWidth = (size.width - totalGap) / count;
     final barRadius = Radius.circular(barWidth / 2);
 
     for (int i = 0; i < count; i++) {
-      final amp = displayBands[i].clamp(0.0, 1.0);
+      final amp = mirroredBands[i];
       final barHeight = max(barWidth, amp * size.height * 0.92);
       final x = i * (barWidth + _barGap);
       // Vertically center the bar

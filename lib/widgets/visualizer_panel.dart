@@ -115,7 +115,7 @@ class _VisualizerPanelState extends State<VisualizerPanel>
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: ['20Hz', '100Hz', '500Hz', '2kHz', '8kHz', '20kHz']
+                children: ['HIGH', 'MID', 'BASS', 'MID', 'HIGH']
                     .map((label) => Text(
                           label,
                           style: const TextStyle(
