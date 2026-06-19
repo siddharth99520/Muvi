@@ -4,6 +4,7 @@ import '../providers/player_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import 'visualizer_painter.dart';
+import 'lyrics_panel.dart';
 
 class VisualizerPanel extends StatefulWidget {
   const VisualizerPanel({super.key});
@@ -17,6 +18,7 @@ class _VisualizerPanelState extends State<VisualizerPanel>
   late final AnimationController _ticker;
   final List<double> _currentBands = List.filled(32, 0.0);
   List<double> _targetBands = List.filled(32, 0.0);
+  bool _showLyrics = false;
 
   @override
   void initState() {
@@ -71,62 +73,88 @@ class _VisualizerPanelState extends State<VisualizerPanel>
                     ),
                   ),
                   const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () => setState(() => _showLyrics = false),
+                    child: Text(
+                      'LIVE SPECTRUM',
+                      style: TextStyle(
+                        fontFamily: 'SpaceGrotesk',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: !_showLyrics ? AppTheme.textPrimary : AppTheme.textSecondary,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
                   Text(
-                    'LIVE SPECTRUM',
-                    style: TextStyle(
-                      fontFamily: 'SpaceGrotesk',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textSecondary,
-                      letterSpacing: 3,
+                    '|',
+                    style: TextStyle(color: AppTheme.textMuted.withOpacity(0.3)),
+                  ),
+                  const SizedBox(width: 20),
+                  GestureDetector(
+                    onTap: () => setState(() => _showLyrics = true),
+                    child: Text(
+                      'LYRICS',
+                      style: TextStyle(
+                        fontFamily: 'SpaceGrotesk',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: _showLyrics ? AppTheme.textPrimary : AppTheme.textSecondary,
+                        letterSpacing: 3,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // ── Visualizer canvas ─────────────────────────────
+            // ── Main content ─────────────────────────────
             Expanded(
-              child: AnimatedBuilder(
-                animation: _ticker,
-                builder: (context, _) {
-                  // Buttery smooth 60fps interpolation
-                  for (int i = 0; i < 32; i++) {
-                    final diff = _targetBands[i] - _currentBands[i];
-                    // Fast attack (bars jump up quickly), slow decay (fall down smoothly)
-                    _currentBands[i] += diff * (diff > 0 ? 0.35 : 0.15);
-                  }
+              child: _showLyrics
+                  ? const LyricsPanel()
+                  : AnimatedBuilder(
+                      animation: _ticker,
+                      builder: (context, _) {
+                        // Buttery smooth 60fps interpolation
+                        for (int i = 0; i < 32; i++) {
+                          final diff = _targetBands[i] - _currentBands[i];
+                          // Fast attack (bars jump up quickly), slow decay (fall down smoothly)
+                          _currentBands[i] += diff * (diff > 0 ? 0.35 : 0.15);
+                        }
 
-                  return CustomPaint(
-                    painter: VisualizerPainter(
-                      bands: List.from(_currentBands),
-                      animationValue: _ticker.value,
-                      barCount: settings.barCount,
-                    ),
-                    child: const SizedBox.expand(),
-                  );
-                },
-              ),
-            ),
-
-            // ── Frequency labels ──────────────────────────────
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: ['HIGH', 'MID', 'BASS', 'MID', 'HIGH']
-                    .map((label) => Text(
-                          label,
-                          style: const TextStyle(
-                            fontSize: 9,
-                            color: AppTheme.textMuted,
-                            letterSpacing: 0.3,
+                        return CustomPaint(
+                          painter: VisualizerPainter(
+                            bands: List.from(_currentBands),
+                            animationValue: _ticker.value,
+                            barCount: settings.barCount,
                           ),
-                        ))
-                    .toList(),
-              ),
+                          child: const SizedBox.expand(),
+                        );
+                      },
+                    ),
             ),
+
+            // ── Frequency labels (only for spectrum) ──────────────────────────────
+            if (!_showLyrics) ...[
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: ['HIGH', 'MID', 'BASS', 'MID', 'HIGH']
+                      .map((label) => Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              color: AppTheme.textMuted,
+                              letterSpacing: 0.3,
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
           ],
         );
       },
