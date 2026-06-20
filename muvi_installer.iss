@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Muvi"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "Siddharth"
 #define MyAppExeName "muvi.exe"
 #define MyAppBuildDir "build\windows\x64\runner\Release"
