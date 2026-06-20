@@ -6,12 +6,12 @@ A borderless, glassmorphic Windows desktop app that reads the currently playing 
 
 ## ✨ Features
 
-- 🎵 **Live Media Detection** — reads Spotify / any Windows media via GSMTC (Phase 2)
-- 📊 **Real-time FFT Visualizer** — 32-band bar spectrum powered by WASAPI loopback + Kiss FFT (Phase 2)
+- 🎵 **Live Media Detection** — reads Spotify / any Windows media via GSMTC
+- 📊 **Real-time FFT Visualizer** — 32-band bar spectrum powered by WASAPI loopback + Kiss FFT
+- 🎤 **Synchronized Lyrics** — Fetches time-synced lyrics from lrclib and plain text from Genius
 - 🪟 **Borderless Window** — custom title bar with macOS-style controls via `bitsdojo_window`
 - 🌫️ **Acrylic / Frosted Glass** — native Windows acrylic effect via `flutter_acrylic`
 - 🎨 **Premium UI** — deep navy + violet/cyan palette, Space Grotesk + Inter typography
-- ⚡ **Animated Mock Visualizer** — organic multi-wave FFT simulation for Phase 1
 
 ---
 
@@ -107,8 +107,9 @@ windows/
 - [x] Phase 1: Scaffold, UI, mock animated visualizer, window styling
 - [x] Phase 2: GSMTC C++ platform channel — real media metadata
 - [x] Phase 2: WASAPI loopback + Kiss FFT → real audio visualizer
-- [ ] Phase 3: Settings panel (bar count, color themes, opacity)
-- [ ] Phase 3: Album art dominant color extraction
+- [x] Phase 3: Settings panel (bar count, color themes, opacity)
+- [x] Phase 3: Album art dominant color extraction
+- [x] Phase 4: Live synced lyrics engine (lrclib + genius fallbacks)
 
 ---
 
