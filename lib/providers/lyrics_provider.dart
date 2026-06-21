@@ -39,6 +39,7 @@ class LyricsProvider extends ChangeNotifier {
   List<LyricsLine>? get syncedLyrics => _syncedLyrics;
 
   String _currentTrackId = '';
+  Timer? _debounceTimer;
   final PlayerProvider _playerProvider;
 
   static const _headers = {
@@ -53,20 +54,26 @@ class LyricsProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _playerProvider.removeListener(_onPlayerStateChanged);
     super.dispose();
   }
 
   void _onPlayerStateChanged() {
     final state = _playerProvider.state;
-    // Use a separator unlikely to appear in metadata
     final trackId = '${state.artist}|||${state.title}';
 
     if (trackId != _currentTrackId &&
         state.title.isNotEmpty &&
         state.title != 'Unknown Track') {
       _currentTrackId = trackId;
-      _fetchLyrics(state.artist, state.title);
+
+      // Debounce: cancel any pending fetch and wait 1.5s for the
+      // track to settle (handles rapid skipping).
+      _debounceTimer?.cancel();
+      _debounceTimer = Timer(const Duration(milliseconds: 1500), () {
+        _fetchLyrics(state.artist, state.title);
+      });
     }
   }
 
