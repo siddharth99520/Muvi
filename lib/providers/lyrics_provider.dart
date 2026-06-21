@@ -129,7 +129,7 @@ class LyricsProvider extends ChangeNotifier {
 
       final response = await http
           .get(uri, headers: {'Lrclib-Client': 'Muvi/1.0.0'})
-          .timeout(const Duration(seconds: 8));
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode != 200) return const _FetchResult(_FetchStatus.notFound);
 
@@ -192,7 +192,7 @@ class LyricsProvider extends ChangeNotifier {
 
       final searchResp = await http
           .get(searchUri, headers: _headers)
-          .timeout(const Duration(seconds: 8));
+          .timeout(const Duration(seconds: 15));
 
       if (searchResp.statusCode != 200) {
         return const _FetchResult(_FetchStatus.notFound);
@@ -224,7 +224,7 @@ class LyricsProvider extends ChangeNotifier {
       // Fetch the lyrics HTML page
       final pageResp = await http
           .get(Uri.parse(songUrl), headers: _headers)
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 20));
 
       if (pageResp.statusCode != 200) return const _FetchResult(_FetchStatus.notFound);
 
