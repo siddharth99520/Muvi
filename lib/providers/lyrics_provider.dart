@@ -130,6 +130,31 @@ class LyricsProvider extends ChangeNotifier {
   }
 
   // ────────────────────────────────────────────────────────────────────
+  // Retry helper: up to [maxRetries] attempts with exponential backoff.
+  // Only retries on SocketException / TimeoutException (transient errors).
+  // ────────────────────────────────────────────────────────────────────
+  Future<http.Response> _getWithRetry(
+    Uri uri, {
+    Map<String, String>? headers,
+    Duration timeout = const Duration(seconds: 15),
+    int maxRetries = 3,
+  }) async {
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        return await http.get(uri, headers: headers).timeout(timeout);
+      } on SocketException catch (_) {
+        if (attempt == maxRetries - 1) rethrow;
+      } on TimeoutException catch (_) {
+        if (attempt == maxRetries - 1) rethrow;
+      }
+      // Exponential backoff: 1s, 2s, 4s …
+      await Future.delayed(Duration(seconds: 1 << attempt));
+    }
+    // Unreachable, but satisfies the return type.
+    throw TimeoutException('_getWithRetry: max retries exceeded');
+  }
+
+  // ────────────────────────────────────────────────────────────────────
   // lrclib: /api/search (fuzzy, no duration required)
   // ────────────────────────────────────────────────────────────────────
   Future<_FetchResult> _tryFetchFromLrclib(String artist, String title) async {
@@ -138,9 +163,11 @@ class LyricsProvider extends ChangeNotifier {
       final uri = Uri.parse('https://lrclib.net/api/search')
           .replace(queryParameters: {'q': q});
 
-      final response = await http
-          .get(uri, headers: {'Lrclib-Client': 'Muvi/1.0.0'})
-          .timeout(const Duration(seconds: 15));
+      final response = await _getWithRetry(
+          uri,
+          headers: {'Lrclib-Client': 'Muvi/1.0.0'},
+          timeout: const Duration(seconds: 15),
+        );
 
       if (response.statusCode != 200) return const _FetchResult(_FetchStatus.notFound);
 
@@ -201,9 +228,11 @@ class LyricsProvider extends ChangeNotifier {
         queryParameters: {'q': q, 'per_page': '5'},
       );
 
-      final searchResp = await http
-          .get(searchUri, headers: _headers)
-          .timeout(const Duration(seconds: 15));
+      final searchResp = await _getWithRetry(
+          searchUri,
+          headers: _headers,
+          timeout: const Duration(seconds: 15),
+        );
 
       if (searchResp.statusCode != 200) {
         return const _FetchResult(_FetchStatus.notFound);
@@ -233,9 +262,11 @@ class LyricsProvider extends ChangeNotifier {
       if (songUrl == null) return const _FetchResult(_FetchStatus.notFound);
 
       // Fetch the lyrics HTML page
-      final pageResp = await http
-          .get(Uri.parse(songUrl), headers: _headers)
-          .timeout(const Duration(seconds: 20));
+      final pageResp = await _getWithRetry(
+          Uri.parse(songUrl),
+          headers: _headers,
+          timeout: const Duration(seconds: 20),
+        );
 
       if (pageResp.statusCode != 200) return const _FetchResult(_FetchStatus.notFound);
 
