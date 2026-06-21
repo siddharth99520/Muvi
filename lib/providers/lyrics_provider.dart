@@ -92,16 +92,21 @@ class LyricsProvider extends ChangeNotifier {
     _source = LyricsSource.none;
     notifyListeners();
 
-    // Each source is fetched independently so that a network error from one
-    // does not mask a "not found" result from the other.
-    final lrclibResult = await _tryFetchFromLrclib(artist, title);
+    // Fetch both sources simultaneously — cuts worst-case wait time in half.
+    final results = await Future.wait([
+      _tryFetchFromLrclib(artist, title),
+      _tryFetchFromGenius(artist, title),
+    ]);
+    final lrclibResult = results[0];
+    final geniusResult = results[1];
+
+    // Prefer lrclib (time-synced) over Genius (plain text).
     if (lrclibResult.status == _FetchStatus.found) {
       _applyResult(lrclibResult.data!, LyricsSource.lrclib);
       notifyListeners();
       return;
     }
 
-    final geniusResult = await _tryFetchFromGenius(artist, title);
     if (geniusResult.status == _FetchStatus.found) {
       _applyResult(geniusResult.data!, LyricsSource.genius);
       notifyListeners();
@@ -109,7 +114,6 @@ class LyricsProvider extends ChangeNotifier {
     }
 
     // Only report offline when EVERY source had a network error.
-    // If at least one source responded (even with no results), we're online.
     final bothNetworkErrors =
         lrclibResult.status == _FetchStatus.networkError &&
         geniusResult.status == _FetchStatus.networkError;
