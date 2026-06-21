@@ -21,15 +21,16 @@ A borderless, glassmorphic Windows desktop app that reads the currently playing 
 ┌──────────────────────────────────────────────────────────────┐
 │  ● ●   M U V I                          ◉ DETECTING MEDIA   │
 ├───────────────────┬──────────────────────────────────────────┤
-│                   │                                          │
-│   [Album Art]     │    ████ █  ████  █  ███  ████  █  ████  │
-│                   │                                          │
+│                   │  [ SPECTRUM ]  [ LYRICS ]                │
+│   [Album Art]     │                                          │
+│                   │    ████ █  ████  █  ███  ████  █  ████  │
 │  Song Title       │         LIVE SPECTRUM                    │
-│  Artist Name      │                                          │
-│  Album            │    20Hz      500Hz      8kHz    20kHz   │
-│                   │                                          │
-│  ═══════════════  │                                          │
+│  Artist Name      │    20Hz      500Hz      8kHz    20kHz   │
+│  Album            │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
+│                   │    [Lyrics tab: auto-scrolling,          │
+│  ═══════════════  │     active line highlighted + zoom]      │
 │  ◀◀  ▶▶  ▶▶▶     │                                          │
+│  ⚙ Settings       │                              ↺ SYNC     │
 └───────────────────┴──────────────────────────────────────────┘
 ```
 
@@ -42,11 +43,18 @@ A borderless, glassmorphic Windows desktop app that reads the currently playing 
 | UI Framework | Flutter 3.x (Windows desktop) |
 | Window chrome | `bitsdojo_window` |
 | Acrylic effect | `flutter_acrylic` |
+| Fullscreen / window control | `window_manager` |
 | State management | `provider` |
+| Persistent settings | `shared_preferences` |
 | Typography | Google Fonts (Space Grotesk, Inter) |
-| Media detection | Windows GSMTC (Phase 2) |
-| Audio capture | WASAPI Loopback (Phase 2) |
-| FFT | Kiss FFT — single-header C library (Phase 2) |
+| Image caching | `cached_network_image` |
+| Color extraction | `palette_generator` |
+| App versioning | `package_info_plus` |
+| Media detection | Windows GSMTC (C++ platform channel) |
+| Audio capture | WASAPI Loopback (C++ platform channel) |
+| FFT | Kiss FFT — single-header C library |
+| Lyrics (synced) | [lrclib.net](https://lrclib.net) API |
+| Lyrics (fallback) | [Genius](https://genius.com) scraping |
 
 ---
 
@@ -77,27 +85,34 @@ flutter build windows --release
 
 ```
 lib/
-├── main.dart                  # Entry: acrylic init + bitsdojo window
-├── app.dart                   # MaterialApp + theme
-├── models/player_state.dart   # Immutable song + FFT state
-├── providers/player_provider.dart  # Animated mock + Phase 2 channel stubs
-├── screens/home_screen.dart   # Two-column split layout
+├── main.dart                        # Entry: acrylic init + bitsdojo + window_manager
+├── app.dart                         # MaterialApp + theme
+├── models/
+│   └── player_state.dart            # Immutable song + FFT state
+├── providers/
+│   ├── player_provider.dart         # GSMTC media + WASAPI FFT channel bridge
+│   ├── lyrics_provider.dart         # Dual-source lyrics engine (lrclib + Genius)
+│   └── settings_provider.dart       # Persisted settings (shared_preferences)
+├── screens/
+│   └── home_screen.dart             # Two-column split layout + F11 fullscreen
 ├── widgets/
-│   ├── title_bar.dart         # Custom borderless title bar
-│   ├── album_art_panel.dart   # Art, song info, progress, controls
-│   ├── visualizer_panel.dart  # Visualizer container + labels
-│   └── visualizer_painter.dart # CustomPainter: 32 FFT bars
-└── theme/app_theme.dart       # Color palette + typography tokens
+│   ├── title_bar.dart               # Custom borderless title bar
+│   ├── album_art_panel.dart         # Art, song info, progress bar, controls
+│   ├── visualizer_panel.dart        # Tab container: Spectrum ↔ Lyrics toggle
+│   ├── visualizer_painter.dart      # CustomPainter: 32 FFT bars
+│   ├── lyrics_panel.dart            # Auto-scrolling synced lyrics + sync button
+│   └── settings_dialog.dart         # Settings sheet (bar count, theme, opacity)
+└── theme/app_theme.dart             # Color palette + typography tokens
 
 windows/
-├── CMakeLists.txt             # Top-level Windows build
-├── flutter/CMakeLists.txt     # Flutter SDK integration
+├── CMakeLists.txt                   # Top-level Windows build
+├── flutter/CMakeLists.txt           # Flutter SDK integration
 └── runner/
-    ├── main.cpp               # WinMain entry
-    ├── flutter_window.{h,cpp} # Flutter view host
-    ├── win32_window.{h,cpp}   # DPI-aware Win32 base
-    ├── utils.{h,cpp}          # Console + UTF helpers
-    └── Runner.rc              # App version + icon resource
+    ├── main.cpp                     # WinMain entry
+    ├── flutter_window.{h,cpp}       # Flutter view host
+    ├── win32_window.{h,cpp}         # DPI-aware Win32 base
+    ├── utils.{h,cpp}                # Console + UTF helpers
+    └── Runner.rc                    # App version + icon resource
 ```
 
 ---

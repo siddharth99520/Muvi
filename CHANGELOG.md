@@ -8,15 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-06-20
 
 ### Added
-- **Live Lyrics Engine:** Added a dual-source lyrics engine powered by `lrclib.net` (for time-synced lyrics) and `genius.com` (for plain text fallbacks).
-- **Lyrics Panel UI:** A beautiful, responsive, auto-scrolling lyrics panel with active line highlighting and precise centering.
-- **Tab Navigation:** Seamless toggle between the Live Spectrum visualizer and the new Lyrics view.
-- **Sync Recovery:** Manual scroll detection with a floating sync button to easily resume auto-tracking lyrics.
-- **Settings & About:** Added app versioning visibility and a professional about section inside the settings dialog.
+- **Live Lyrics Engine:** Dual-source lyrics engine powered by `lrclib.net` (time-synced LRC) with `genius.com` as a plain-text fallback.
+- **Lyrics Panel UI:** Auto-scrolling, responsive lyrics panel with active-line highlighting, zoom scaling, and precise centering.
+- **Tab Navigation:** Seamless toggle between the Live Spectrum visualizer and the Lyrics view inside the right panel.
+- **Sync Recovery:** Manual scroll detection with a floating ↺ sync button to resume auto-tracking at any time.
+- **Fullscreen Support:** F11 toggles true fullscreen via `window_manager`; layout and scroll math adapts dynamically.
+- **Settings Dialog:** Persistent settings panel (bar count, color theme, opacity) backed by `shared_preferences`.
+- **App Versioning:** Version string surfaced inside the Settings / About section via `package_info_plus`.
+- **Image Caching:** Album art loaded and cached with `cached_network_image` for flicker-free transitions.
+- **Color Extraction:** `palette_generator` derives dominant album colors for dynamic theme tinting.
 
 ### Changed
-- Smooth zoom transitions and anti-jitter layout math for active lyrics.
+- Smooth zoom transitions and anti-jitter layout math for active lyrics lines.
 - Fully overhauled the `ListView` scrolling algorithm to handle edge cases like fullscreen transitions and lazy rendering.
+- `visualizer_panel.dart` refactored into a tab container (Spectrum ↔ Lyrics) rather than a single-purpose visualizer host.
 
 ## [1.0.0] - Initial Release
 
