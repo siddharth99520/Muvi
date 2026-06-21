@@ -19,6 +19,14 @@ class _FetchResult {
   const _FetchResult(this.status, [this.data]);
 }
 
+/// A cached lyrics result keyed by 'artist|||title'.
+class _CachedLyrics {
+  final List<LyricsLine>? synced;
+  final String? plain;
+  final LyricsSource source;
+  const _CachedLyrics({required this.synced, required this.plain, required this.source});
+}
+
 class LyricsLine {
   final Duration timestamp;
   final String text;
@@ -41,6 +49,10 @@ class LyricsProvider extends ChangeNotifier {
   String _currentTrackId = '';
   Timer? _debounceTimer;
   final PlayerProvider _playerProvider;
+
+  /// In-memory lyrics cache. Key: 'artist|||title'. Capped at 50 entries.
+  final Map<String, _CachedLyrics> _cache = {};
+  static const int _cacheLimit = 50;
 
   static const _headers = {
     'User-Agent':
@@ -78,14 +90,30 @@ class LyricsProvider extends ChangeNotifier {
   }
 
   // Expose retry so the UI can trigger a fresh fetch.
+  // Bypasses the cache so the user can force a fresh network request.
   void retry() {
     final state = _playerProvider.state;
     if (state.title.isNotEmpty && state.title != 'Unknown Track') {
+      final trackId = '${state.artist}|||${state.title}';
+      _cache.remove(trackId); // force re-fetch
       _fetchLyrics(state.artist, state.title);
     }
   }
 
   Future<void> _fetchLyrics(String artist, String title) async {
+    final trackId = '$artist|||$title';
+
+    // ── Cache hit: serve instantly without any network call ──────────────
+    final cached = _cache[trackId];
+    if (cached != null) {
+      _syncedLyrics = cached.synced;
+      _plainLyrics  = cached.plain;
+      _source       = cached.source;
+      _status       = LyricsStatus.loaded;
+      notifyListeners();
+      return;
+    }
+
     _status = LyricsStatus.loading;
     _plainLyrics = null;
     _syncedLyrics = null;
@@ -103,12 +131,14 @@ class LyricsProvider extends ChangeNotifier {
     // Prefer lrclib (time-synced) over Genius (plain text).
     if (lrclibResult.status == _FetchStatus.found) {
       _applyResult(lrclibResult.data!, LyricsSource.lrclib);
+      _cacheResult(trackId, LyricsSource.lrclib);
       notifyListeners();
       return;
     }
 
     if (geniusResult.status == _FetchStatus.found) {
       _applyResult(geniusResult.data!, LyricsSource.genius);
+      _cacheResult(trackId, LyricsSource.genius);
       notifyListeners();
       return;
     }
@@ -120,6 +150,19 @@ class LyricsProvider extends ChangeNotifier {
 
     _status = bothNetworkErrors ? LyricsStatus.offline : LyricsStatus.notFound;
     notifyListeners();
+  }
+
+  /// Stores the current in-memory lyrics into the cache.
+  /// Evicts the oldest entry when the cache exceeds [_cacheLimit].
+  void _cacheResult(String trackId, LyricsSource src) {
+    if (_cache.length >= _cacheLimit) {
+      _cache.remove(_cache.keys.first);
+    }
+    _cache[trackId] = _CachedLyrics(
+      synced: _syncedLyrics,
+      plain:  _plainLyrics,
+      source: src,
+    );
   }
 
   void _applyResult(Map<String, dynamic> result, LyricsSource src) {
